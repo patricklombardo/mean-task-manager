@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const _ = require("lodash");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 
 // JWT Secret
 const jwtSecret = "17921118259779275716utrieobnvmc9894224998";
@@ -96,9 +97,71 @@ UserSchema.methods.createSession = function () {
  * Model Methods
  */
 
-UserSchema.statics.findByIdAndToken = function () {
-  // Do this tomorrow
+UserSchema.statics.findByIdAndToken = function (_id, token) {
+  // Finda a user by ID snd token
+  // Used in authenticiation middleware
+
+  const User = this;
+
+  return User.findOne({
+    _id,
+    "session.token": token,
+  });
 };
+
+UserSchema.statics.findByCredentials = function (email, password) {
+  let User = this;
+
+  return User.findOne({ email }).then((user) => {
+    if (!user) {
+      // Fail if there is no user
+      return Promise.reject();
+    }
+    return new Promise((resolve, reject) => {
+      // Compare input password and hash
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user);
+        } else {
+          reject();
+        }
+      });
+    });
+  });
+};
+
+UserSchema.statics.hasRefreshTokenExpired = (expiresAt) => {
+  let secondsSinceEpoch = Date.now() / 1000;
+  if (expiresAt > secondsSinceEpoch) {
+    // Hasn't expired
+    return false;
+  } else {
+    // Has expired
+    return true;
+  }
+};
+
+/**
+ * Middlware
+ */
+UserSchema.pre("save", function (next) {
+  let user = this;
+  let costFactor = 10;
+
+  if (user.isModified("password")) {
+    // If the password field has been edited, then run the following:
+    // Generate the salt and hash the password
+    // We do not want to store the plain text password in our database
+    bcrypt.genSalt(costFactor, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 /**
  * Helper Methods
@@ -124,3 +187,7 @@ let generateRefreshTokenExpiryTime = () => {
   let secondsUntilExpire = daysUntilExpire * 24 * 60 * 60;
   return Date.now() / 1000 + secondsUntilExpire;
 };
+
+const User = mongoose.model("User", UserSchema);
+
+module.exports = { User };

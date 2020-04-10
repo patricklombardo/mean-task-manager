@@ -5,7 +5,7 @@ const app = express();
 const { mongoose } = require("./db/mongoose");
 
 // Losd Mongoose Models
-const { List, Task } = require("./db/models");
+const { List, Task, User } = require("./db/models");
 
 // Load Middleware
 app.use(bodyParser.json());
@@ -150,6 +150,83 @@ app.delete("/lists/:listId/tasks/:taskId", (req, res) => {
   }).then((removedTaskDoc) => {
     res.send(removedTaskDoc);
   });
+});
+
+/** USER ROUTES **/
+
+/**
+ * POST /users
+ * Purpose: Sign up
+ */
+
+app.post("/users", (req, res) => {
+  // User sign up
+
+  let body = req.body;
+  let newUser = new User(body);
+
+  newUser
+    .save()
+    .then(() => {
+      return newUser.createSession();
+    })
+    .then((refreshToken) => {
+      // Session created successfully - return refresh token
+      // Generate an access auth token
+
+      return newUser.generateAccessAuthToken().then((accessToken) => {
+        // Return auth and refresh token
+        return { accessToken, refreshToken };
+      });
+    })
+    .then((authTokens) => {
+      // Construct response
+      // Headers: Refresh token, auth token
+      // Body: user object
+      res
+        .header("x-refresh-token", authTokens.refreshToken)
+        .header("x-access-token", authTokens.accessToken)
+        .send(newUser);
+    })
+    .catch((e) => {
+      res.status(400).send(e);
+    });
+});
+
+/**
+ * POST /users/login
+ * Purpose: Log in
+ */
+
+app.post("/users/login", (req, res) => {
+  // Get email and password from the request body
+  let { email, password } = req.body;
+
+  // Find the user in the database
+  User.findByCredentials(email, password)
+    .then((user) => {
+      return user
+        .createSession()
+        .then((refreshToken) => {
+          // Session created
+          // Generating access token
+          return user.generateAccessAuthToken().then((accessToken) => {
+            // Return object containing access and refresh tokens
+            return { accessToken, refreshToken };
+          });
+        })
+        .then((authTokens) => {
+          // Send the response
+          // Same as above
+          res
+            .header("x-refresh-token", authTokens.refreshToken)
+            .header("x-access-token", authTokens.accessToken)
+            .send(user);
+        });
+    })
+    .catch((e) => {
+      res.status(400).send(e);
+    });
 });
 
 // Listen on Port 3000
