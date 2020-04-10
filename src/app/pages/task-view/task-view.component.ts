@@ -36,7 +36,7 @@ export class TaskViewComponent implements OnInit {
       // Data is present on front end - no response necessary
       console.log(response);
       // The task has been set completed successfully
-      task.completed = true;
+      task.completed = !task.completed;
     });
   }
 }
