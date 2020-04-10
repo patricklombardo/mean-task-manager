@@ -10,6 +10,10 @@ const TaskSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Task = mongoose.model("Task", TaskSchema);
