@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 
 // JWT Secret
-const jwtSecret = "17921118259779275716utrieobnvmc9894224998";
+const jwtSecret = "51778657246321226641fsdklafjasdkljfsklfjd7148924065";
 
 const UserSchema = new mongoose.Schema({
   email: {
