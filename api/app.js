@@ -199,25 +199,19 @@ app.post("/users", (req, res) => {
  */
 
 app.post("/users/login", (req, res) => {
-  // Get email and password from the request body
-  let { email, password } = req.body;
+  let email = req.body.email;
+  let password = req.body.password;
 
-  // Find the user in the database
   User.findByCredentials(email, password)
     .then((user) => {
       return user
         .createSession()
         .then((refreshToken) => {
-          // Session created
-          // Generating access token
           return user.generateAccessAuthToken().then((accessToken) => {
-            // Return object containing access and refresh tokens
             return { accessToken, refreshToken };
           });
         })
         .then((authTokens) => {
-          // Send the response
-          // Same as above
           res
             .header("x-refresh-token", authTokens.refreshToken)
             .header("x-access-token", authTokens.accessToken)
