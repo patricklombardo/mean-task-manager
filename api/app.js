@@ -10,6 +10,8 @@ const { List, Task, User } = require("./db/models");
 // Load Middleware
 app.use(bodyParser.json());
 
+/** MIDDLEWARE **/
+
 // Enable CORS
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
@@ -23,6 +25,55 @@ app.use(function (req, res, next) {
   );
   next();
 });
+
+// Verify Refresh Token Middleware
+// Verifies the session
+let verifySession = (req, res, next) => {
+  let refreshToken = req.header("x-refresh-token");
+  let _id = req.header("_id");
+
+  User.findByIdAndToken(_id, refreshToken)
+    .then((user) => {
+      if (!user) {
+        //User not found
+        return Promise.reject({ error: "User not found" });
+      }
+
+      // User Found
+      // Session refresh token exists
+      // Validate if it is valid
+
+      req.user_id = user._id;
+      req.userObject = user;
+      req.refreshToken = refreshToken;
+
+      let isSessionValid = false;
+
+      user.sessions.forEach((session) => {
+        if (session.token === refreshToken) {
+          // Verify that session is valid
+          if (User.hasRefreshTokenExpired(session.expiresAt) === false) {
+            // Refresh token valid
+            isSessionValid = true;
+          }
+        }
+      });
+
+      if (isSessionValid) {
+        // Session is valid
+        // Call next to continue processing the request
+        next();
+      } else {
+        // Session is invalid
+        return Promise.reject({
+          error: "Refresh token has expired or the session is invalid",
+        });
+      }
+    })
+    .catch((e) => {
+      res.status(401).send(e);
+    });
+};
 
 // Route Handlers
 
@@ -217,6 +268,27 @@ app.post("/users/login", (req, res) => {
             .header("x-access-token", authTokens.accessToken)
             .send(user);
         });
+    })
+    .catch((e) => {
+      res.status(400).send(e);
+    });
+});
+
+/**
+ * GET /users/me/access-token
+ * Purpose: Get an access token
+ */
+
+app.get("/users/me/access-token", verifySession, (req, res) => {
+  // Note: need to check that the user is allowed to access this
+  // We verified that the user/caller is valid
+
+  req.userObject
+    .generateAccessAuthToken()
+    .then((accessToken) => {
+      // Sending access token in both header and in body
+      // Allows the client to have two ways to access the token
+      res.header("x-access-token", accessToken).send({ accessToken });
     })
     .catch((e) => {
       res.status(400).send(e);
