@@ -1,11 +1,11 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const app = express();
-
 const { mongoose } = require("./db/mongoose");
-
-// Losd Mongoose Models
 const { List, Task, User } = require("./db/models");
+const jwt = require("jsonwebtoken");
+
+// Init App
+const app = express();
 
 // Load Middleware
 app.use(bodyParser.json());
@@ -29,6 +29,25 @@ app.use(function (req, res, next) {
   );
   next();
 });
+
+// Check whether the request has a valid jwt token
+let authenticate = (req, res, next) => {
+  let token = req.header("x-access-token");
+
+  // verify the JWT
+  jwt.verify(token, User.getJWTSecret(), (err, decoded) => {
+    if (err) {
+      // There was an error
+      // JWT is invalid
+      // DO NOT AUTHENTICATE
+      res.status(401).send(err);
+    } else {
+      // Authenticate
+      req.user_id = decoded._id;
+      next();
+    }
+  });
+};
 
 // Verify Refresh Token Middleware
 // Verifies the session
@@ -87,9 +106,11 @@ let verifySession = (req, res, next) => {
  * GET Lists
  * Purpose: Get all lists
  */
-app.get("/lists", (req, res) => {
-  // Return an array of all lists in the database
-  List.find().then((lists) => {
+app.get("/lists", authenticate, (req, res) => {
+  // Return an array of all lists in the database that belong to the authenticated user
+  List.find({
+    _userId: req.user_id,
+  }).then((lists) => {
     res.send(lists);
   });
 });
@@ -139,6 +160,9 @@ app.delete("/lists/:id", (req, res) => {
     _id: req.params.id,
   }).then((removedListDoc) => {
     res.send(removedListDoc);
+
+    // Delete all the tasks associated with a list
+    deleteTasksFromList(removedListDoc._id);
   });
 });
 
@@ -298,6 +322,16 @@ app.get("/users/me/access-token", verifySession, (req, res) => {
       res.status(400).send(e);
     });
 });
+
+/**Helpers */
+
+let deleteTasksFromList = (_listId) => {
+  Task.deleteMany({
+    _listId,
+  }).then(() => {
+    console.log(`All tasks from ${_listId} have been deleted`);
+  });
+};
 
 // Listen on Port 3000
 

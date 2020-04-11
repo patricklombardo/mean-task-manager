@@ -34,6 +34,11 @@ const UserSchema = new mongoose.Schema({
   ],
 });
 
+/** Model Methods */
+UserSchema.statics.getJWTSecret = () => {
+  return jwtSecret;
+};
+
 // *** Instance methods ***
 
 UserSchema.methods.toJSON = function () {
