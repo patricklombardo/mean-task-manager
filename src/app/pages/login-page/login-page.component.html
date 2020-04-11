@@ -4,6 +4,7 @@
     <div class="field">
       <p class="control has-icons-left has-icons-right">
         <input
+          #emailInput
           class="input has-background-light"
           type="email"
           placeholder="Email"
@@ -16,6 +17,7 @@
     <div class="field">
       <p class="control has-icons-left">
         <input
+          #passwordInput
           class="input has-background-light"
           type="password"
           placeholder="Password"
@@ -27,7 +29,10 @@
     </div>
     <div class="field is-pulled-right">
       <p class="control">
-        <button class="button is-success">
+        <button
+          class="button is-success"
+          (click)="onLoginButtonClicked(emailInput.value, passwordInput.value)"
+        >
           Login
         </button>
       </p>
