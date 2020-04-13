@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../auth.service';
 import { HttpResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login-page',
@@ -8,7 +9,7 @@ import { HttpResponse } from '@angular/common/http';
   styleUrls: ['./login-page.component.scss'],
 })
 export class LoginPageComponent implements OnInit {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -16,7 +17,10 @@ export class LoginPageComponent implements OnInit {
     this.authService
       .login(email, password)
       .subscribe((res: HttpResponse<any>) => {
-        console.log(res);
+        if (res.status === 200) {
+          //Login success
+          this.router.navigate(['/lists']);
+        }
       });
   }
 }
