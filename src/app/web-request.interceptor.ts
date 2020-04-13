@@ -15,7 +15,7 @@ import { throwError, Observable } from 'rxjs';
 export class WebRequestInterceptorService implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
-  incercept(request: HttpRequest<any>, next: HttpHandler): Observable<any> {
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<any> {
     // Handle the request
 
     request = this.addAuthHeader(request);
@@ -23,6 +23,15 @@ export class WebRequestInterceptorService implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         console.log(error);
+
+        if (error.status === 401) {
+          // 401 -> Unauthorized
+
+          // Refresh access token
+
+          // Logout if token cannot be refreshed
+          this.authService.logout();
+        }
         return throwError(error);
       })
     );
