@@ -59,7 +59,28 @@
           (click)="onTaskClick(task)"
           [ngClass]="{ completed: task.completed }"
         >
-          {{ task.title }}
+          <div class="task-text">
+            <p>{{ task.title }}</p>
+          </div>
+          <div class="task-buttons">
+            <button
+              class="button"
+              style="margin-right: 10px;"
+              [routerLink]="['/lists', selectedListId, 'edit-task', task._id]"
+            >
+              <div class="icon">
+                <i class="fas fa-edit"></i>
+              </div>
+            </button>
+            <button
+              class="button is-danger"
+              (click)="onDeleteTaskClick(task._id)"
+            >
+              <div class="icon">
+                <i class="fas fa-trash"></i>
+              </div>
+            </button>
+          </div>
         </div>
 
         <h3 class="empty-state-text" *ngIf="tasks.length === 0">

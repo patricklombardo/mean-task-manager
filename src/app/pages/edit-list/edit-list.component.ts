@@ -19,12 +19,14 @@ export class EditListComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe((params: Params) => {
       this.listId = params.listId;
+      console.log(params.listId);
     });
   }
 
   updateList(title: string) {
+    console.log(title);
     this.taskService.updateList(this.listId, title).subscribe(() => {
-      this.router.navigate([`/lists`, this.listId]);
+      this.router.navigate(['/lists', this.listId]);
     });
   }
 }

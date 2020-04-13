@@ -149,7 +149,7 @@ app.patch("/lists/:id", authenticate, (req, res) => {
       $set: req.body,
     }
   ).then(() => {
-    res.send({ message: "updated successfully" });
+    res.send({ message: "List updated successfully" });
   });
 });
 

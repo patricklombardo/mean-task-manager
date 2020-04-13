@@ -61,7 +61,6 @@ export class AuthService {
 
   getAccessToken() {
     let token = localStorage.getItem('x-access-token');
-    console.log('Stored Access Token:', token);
     return token;
   }
 
