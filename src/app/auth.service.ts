@@ -32,6 +32,24 @@ export class AuthService {
     );
   }
 
+  signUp(email: string, password: string) {
+    // Make a web request to the API
+    // Body containing email and password
+    return this.webService.signUp(email, password).pipe(
+      // shareReplay prevents login from beign called multiple times
+      shareReplay(),
+      tap((res: HttpResponse<any>) => {
+        // Get auth tokens from header of the response
+        this.setSession(
+          res.body._id,
+          res.headers.get('x-access-token'),
+          res.headers.get('x-refresh-token')
+        );
+        console.log('Logged In');
+      })
+    );
+  }
+
   logout() {
     this.removeSession();
     this.router.navigateByUrl('/login');
