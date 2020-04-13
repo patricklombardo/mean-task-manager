@@ -12,7 +12,7 @@ import { throwError, Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class WebRequestInterceptorService implements HttpInterceptor {
+export class WebRequestInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<any> {

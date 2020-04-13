@@ -38,7 +38,9 @@ export class AuthService {
   }
 
   getAccessToken() {
-    return localStorage.getItem('x-access-item');
+    let token = localStorage.getItem('x-access-token');
+    console.log('Stored Access Token:', token);
+    return token;
   }
 
   setAccessToken(accessToken: string) {
@@ -51,13 +53,13 @@ export class AuthService {
     refreshToken: string
   ) {
     localStorage.setItem('user-id', userId);
-    localStorage.setItem('access-token', accessToken);
-    localStorage.setItem('refresh-token', refreshToken);
+    localStorage.setItem('x-access-token', accessToken);
+    localStorage.setItem('x-refresh-token', refreshToken);
   }
 
   private removeSession() {
     localStorage.removeItem('user-id');
-    localStorage.removeItem('access-token');
-    localStorage.removeItem('refresh-token');
+    localStorage.removeItem('x-access-token');
+    localStorage.removeItem('xrefresh-token');
   }
 }
