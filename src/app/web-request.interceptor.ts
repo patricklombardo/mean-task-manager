@@ -7,7 +7,7 @@ import {
   HttpErrorResponse,
 } from '@angular/common/http';
 import { catchError, tap, switchMap } from 'rxjs/operators';
-import { throwError, Observable, empty } from 'rxjs';
+import { throwError, Observable, empty, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +16,8 @@ export class WebRequestInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   refreshingAccessToken: Boolean;
+
+  accessTokenRefreshed: Subject<any> = new Subject();
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<any> {
     // Handle the request
@@ -26,7 +28,7 @@ export class WebRequestInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         console.log(error);
 
-        if (error.status === 401 && !this.refreshingAccessToken) {
+        if (error.status === 401) {
           // 401 -> Unauthorized
 
           // Refresh access token
@@ -50,13 +52,24 @@ export class WebRequestInterceptor implements HttpInterceptor {
   }
 
   refreshAccessToken() {
-    this.refreshingAccessToken = true;
-    return this.authService.getNewAccessToken().pipe(
-      tap(() => {
-        this.refreshingAccessToken = false;
-        console.log('Access Token Refreshed');
-      })
-    );
+    if (this.refreshingAccessToken) {
+      return new Observable((observer) => {
+        this.accessTokenRefreshed.subscribe(() => {
+          // This code will run when the access token has been refreshed
+          // Provides signal to rerun request
+          observer.next();
+          observer.complete();
+        });
+      });
+    } else {
+      this.refreshingAccessToken = true;
+      return this.authService.getNewAccessToken().pipe(
+        tap(() => {
+          this.refreshingAccessToken = false;
+          console.log('Access Token Refreshed');
+        })
+      );
+    }
   }
 
   // Append the token to the request header

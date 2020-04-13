@@ -45,7 +45,7 @@ export class AuthService {
           res.headers.get('x-access-token'),
           res.headers.get('x-refresh-token')
         );
-        console.log('Logged In');
+        console.log('Successfully signed up and logged in');
       })
     );
   }
