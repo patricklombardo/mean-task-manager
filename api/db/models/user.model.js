@@ -56,7 +56,7 @@ UserSchema.methods.generateAccessAuthToken = function () {
     jwt.sign(
       { _id: user._id.toHexString() },
       jwtSecret,
-      { expiresIn: "15m" },
+      { expiresIn: "10s" },
       (err, token) => {
         if (!err) {
           resolve(token);
@@ -183,7 +183,9 @@ let saveSessionToDatabase = (user, refreshToken) => {
 
 let generateRefreshTokenExpiryTime = () => {
   let daysUntilExpire = "10";
-  let secondsUntilExpire = daysUntilExpire * 24 * 60 * 60;
+  // let secondsUntilExpire = daysUntilExpire * 24 * 60 * 60;
+  let secondsUntilExpire = 15;
+
   return Date.now() / 1000 + secondsUntilExpire;
 };
 
